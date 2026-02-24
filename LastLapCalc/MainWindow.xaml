@@ -1,0 +1,234 @@
+<Window x:Class="LastLapCalc.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LastLapCalc"
+        mc:Ignorable="d"
+        Title="Last Lap Timer"
+        Height="600"
+        Width="900">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Race time panel -->
+        <GroupBox Header="Race Time" Grid.Row="0" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Elapsed:" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding RaceElapsedDisplay}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Column="2"
+                           Text="Remaining:"
+                           Margin="20,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3"
+                           Text="{Binding RaceRemainingDisplay}"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left" />
+            </Grid>
+        </GroupBox>
+
+        <!-- Leader panel -->
+        <GroupBox Header="Leader" Grid.Row="1" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Trike Number:" VerticalAlignment="Center" Grid.Row="0" />
+                <TextBlock Grid.Column="1" Grid.Row="0"
+                           Text="{Binding LeaderId}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Column="2" Grid.Row="0"
+                           Text="Total Laps Completed:"
+                           Margin="20,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3" Grid.Row="0"
+                           Text="{Binding LeaderLaps}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Text="Name:" VerticalAlignment="Center" Grid.Row="1" Margin="0,4,0,0" />
+                <TextBlock Grid.Column="1" Grid.Row="1"
+                           Text="{Binding LeaderName}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left"
+                           Margin="0,4,0,0" />
+            </Grid>
+        </GroupBox>
+
+        <!-- Prediction panel -->
+        <GroupBox Header="Prediction" Grid.Row="2" Margin="0,0,0,8">
+            <Grid Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Last lap:" VerticalAlignment="Center" Grid.Row="0" />
+                <TextBlock Grid.Column="1" Grid.Row="0"
+                           Text="{Binding LastLapTimeDisplay}"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Column="2" Grid.Row="0"
+                           Text="Avg lap:"
+                           Margin="20,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3" Grid.Row="0"
+                           Text="{Binding AverageLapTimeDisplay}"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Column="4" Grid.Row="0"
+                           Text="# Passings remaining:"
+                           Margin="20,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="5" Grid.Row="0"
+                           Text="{Binding PredictedLapsRemaining}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Column="0" Grid.Row="1"
+                           Text="Laps used for avg:"
+                           Margin="0,4,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Grid.Row="1"
+                           Text="{Binding AverageLapCountUsed}"
+                           Margin="0,4,0,0"
+                           HorizontalAlignment="Left" />
+
+                <TextBlock Grid.Column="2" Grid.Row="1"
+                           Text="Predicted finish duration:"
+                           Margin="20,4,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3" Grid.Row="1"
+                           Text="{Binding PredictedFinishDurationDisplay}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left"
+                           Margin="0,4,0,0" />
+
+                <TextBlock Grid.Column="4" Grid.Row="1"
+                           Text="Predicted finish time:"
+                           Margin="20,4,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Grid.Column="5" Grid.Row="1"
+                           Text="{Binding PredictedFinishTimeOfDayDisplay}"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left"
+                           Margin="0,4,0,0" />
+            </Grid>
+        </GroupBox>
+
+        <!-- Recent Laps panel -->
+        <GroupBox Header="Recent Laps (Newest to Oldest)" Grid.Row="3" Margin="0,0,0,8">
+            <DataGrid ItemsSource="{Binding RecentLaps}"
+                      AutoGenerateColumns="False"
+                      HeadersVisibility="Column"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      Margin="8"
+                      MaxHeight="150">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Lap" Binding="{Binding LapNumber}" Width="60" />
+                    <DataGridTextColumn Header="Lap Time" Binding="{Binding LapTime}" Width="100" />
+                    <DataGridTextColumn Header="Elapsed at Completion" Binding="{Binding ElapsedAtCompletion}" Width="150" />
+                    <DataGridTextColumn Header="Time of Day" Binding="{Binding TimeOfDay}" Width="120" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Last lap board / Finish flag indicator -->
+        <Border Grid.Row="5"
+                CornerRadius="6"
+                Background="Gold"
+                BorderBrush="DarkRed"
+                BorderThickness="3"
+                Padding="8"
+                Visibility="{Binding ShowBanner, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="{Binding BannerMessage}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="32"
+                       FontWeight="Black"
+                       Foreground="Black" />
+        </Border>
+
+        <!-- Status message in bottom-right corner -->
+        <StackPanel Grid.Row="5"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,4,4">
+            <TextBlock Text="{Binding StatusMessage}"
+                       FontSize="10"
+                       Foreground="Gray"
+                       TextAlignment="Right" />
+            <TextBlock Text="{Binding XmlFilePath, FallbackValue='No file path'}"
+                       FontSize="8"
+                       Foreground="LightGray"
+                       TextAlignment="Right"
+                       TextWrapping="Wrap"
+                       MaxWidth="500"
+                       Margin="0,2,0,0"
+                       Visibility="Visible" />
+        </StackPanel>
+
+        <!-- Version info in bottom-left corner -->
+        <StackPanel Grid.Row="5"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="4,0,0,4">
+            <TextBlock Text="Last Lap Timer for PPR"
+                       FontSize="8"
+                       Foreground="LightGray"
+                       TextAlignment="Left" />
+            <TextBlock Text="Kai Waugh 2026"
+                       FontSize="8"
+                       Foreground="LightGray"
+                       TextAlignment="Left"
+                       Margin="0,2,0,0" />
+            <TextBlock Text="Version: 1.0 17.02.26"
+                       FontSize="8"
+                       Foreground="LightGray"
+                       TextAlignment="Left"
+                       Margin="0,2,0,0" />
+        </StackPanel>
+    </Grid>
+</Window>
