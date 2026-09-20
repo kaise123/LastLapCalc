@@ -6,11 +6,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Framework-dependent: requires .NET 10 runtime on the target machine.      -->
+    <!-- Keeps the published exe small (app code only, no bundled runtime).         -->
+    <!-- To produce a fully standalone 150MB exe instead, publish with:             -->
+    <!--   dotnet publish -c Release -p:SelfContained=true                          -->
     <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
+    <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <PublishReadyToRun>true</PublishReadyToRun>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
