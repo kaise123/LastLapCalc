@@ -22,6 +22,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private string _raceRemainingDisplay = "00:00:00";
     private string _leaderId = "Leader";
     private string _leaderName = "";
+    private string _leaderDescription = "";
     private int _leaderLaps;
     private string _lastLapTimeDisplay = "-";
     private string _averageLapTimeDisplay = "-";
@@ -79,6 +80,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         get => _leaderName;
         private set => SetField(ref _leaderName, value);
+    }
+
+    /// <summary>
+    /// User-editable description of the leader's trike (e.g. make/model/colour).
+    /// </summary>
+    public string LeaderDescription
+    {
+        get => _leaderDescription;
+        set => SetField(ref _leaderDescription, value);
     }
 
     public int LeaderLaps
@@ -368,12 +378,14 @@ public sealed class MainViewModel : INotifyPropertyChanged
         // Allow negative values - show with minus sign
         if (timeSpan < TimeSpan.Zero)
         {
-            var absTime = timeSpan.Duration();
-            return $"-{absTime.ToString(@"hh\:mm\:ss")}";
+            var abs = timeSpan.Duration();
+            // Use TotalHours cast to int so values >= 24h display correctly (e.g. "24:03:15")
+            return $"-{(int)abs.TotalHours:D2}:{abs.Minutes:D2}:{abs.Seconds:D2}";
         }
 
-        // Show up to hours, but this will handle any race length.
-        return timeSpan.ToString(@"hh\:mm\:ss");
+        // Use TotalHours cast to int to correctly handle races that run >= 24 hours.
+        // TimeSpan's "hh" format specifier is capped at 23 and wraps for longer durations.
+        return $"{(int)timeSpan.TotalHours:D2}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}";
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
