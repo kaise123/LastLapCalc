@@ -1,6 +1,6 @@
 # Last Lap Timer - Changelog
 
-## [Unreleased]
+## Version 1.1 - 20.09.26
 
 ### Fixed
 - Predicted finish duration (and all elapsed/remaining time displays) now correctly show durations ≥ 24 hours instead of wrapping back to 00:xx:xx. The `hh` TimeSpan format specifier was replaced with an integer cast of `TotalHours` so overnight 24-hour races display the correct accumulated hours.
