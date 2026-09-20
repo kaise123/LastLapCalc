@@ -147,6 +147,19 @@ public sealed class XmlRaceDataReader : IRaceDataReader
                 }
             }
 
+            // Collect all competitors' current lap counts for post-race finish counting.
+            // We parse every <result> element regardless of position.
+            foreach (var result in root.Descendants("result"))
+            {
+                var compNo = result.Attribute("no")?.Value;
+                var compLapsStr = result.Attribute("laps")?.Value;
+                if (!string.IsNullOrWhiteSpace(compNo) &&
+                    int.TryParse(compLapsStr, out var compLaps))
+                {
+                    state.AllCompetitors.Add((compNo, compLaps));
+                }
+            }
+
             return state;
         }
         catch (Exception ex)

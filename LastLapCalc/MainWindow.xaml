@@ -183,21 +183,44 @@
             </DataGrid>
         </GroupBox>
 
-        <!-- Last lap board / Finish flag indicator -->
+        <!-- Last lap board / Finish flag / Race complete indicator -->
         <Border Grid.Row="5"
                 CornerRadius="6"
-                Background="Gold"
-                BorderBrush="DarkRed"
                 BorderThickness="3"
-                Padding="8"
+                Padding="12,8"
                 Visibility="{Binding ShowBanner, Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Text="{Binding BannerMessage}"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       FontSize="32"
-                       FontWeight="Black"
-                       Foreground="Black" />
+            <Border.Style>
+                <Style TargetType="Border">
+                    <!-- Default: last-lap / finish-flag warnings -->
+                    <Setter Property="Background" Value="Gold" />
+                    <Setter Property="BorderBrush" Value="DarkRed" />
+                    <Style.Triggers>
+                        <!-- Race complete: switch to green -->
+                        <DataTrigger Binding="{Binding RaceComplete}" Value="True">
+                            <Setter Property="Background" Value="#27AE60" />
+                            <Setter Property="BorderBrush" Value="#1A7A40" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel HorizontalAlignment="Center">
+                <TextBlock Text="{Binding BannerMessage}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="32"
+                           FontWeight="Black"
+                           Foreground="Black" />
+                <!-- Finish counter: only visible after race expires -->
+                <TextBlock Text="{Binding FinishCounterDisplay}"
+                           HorizontalAlignment="Center"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="Black"
+                           Margin="0,6,0,0"
+                           Visibility="{Binding RaceComplete, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
         </Border>
+
 
         <!-- Status message in bottom-right corner -->
         <StackPanel Grid.Row="5"

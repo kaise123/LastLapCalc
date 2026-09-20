@@ -7,6 +7,8 @@
 
 ### Added
 - Trike description text field in the Leader panel. Operators can type a free-text description (e.g. make, model, colour) of the leading trike during the race.
+- **Race Complete state**: when the race clock expires (remaining ≤ 0), the banner switches to a green **"RACE COMPLETE"** display, overriding the last-lap / finish-flag banners.
+- **Finish-line counter**: displayed beneath the Race Complete banner — shows how many teams have crossed the line since the clock expired ("Finished: X | Still Racing: Y"). The counter is updated on every data read by comparing each competitor's current lap count against a snapshot taken at the moment the clock hit zero.
 
 ---
 

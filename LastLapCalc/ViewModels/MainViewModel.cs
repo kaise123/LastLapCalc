@@ -40,6 +40,14 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private int _lastProcessedLapCount = -1;
     private PredictionResult? _lastPrediction;
 
+    // --- Race-complete / finish-line counter state ---
+    private bool _raceExpired = false;
+    private Dictionary<string, int> _lapsAtRaceExpiry = new();
+    private bool _raceComplete = false;
+    private int _finishedCount = 0;
+    private int _stillRacingCount = 0;
+    private int _totalCompetitors = 0;
+
     public MainViewModel()
     {
         _settings = App.Settings;
@@ -145,7 +153,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         private set => SetField(ref _bannerMessage, value);
     }
 
-    public bool ShowBanner => IsLastLapNow || ShowFinishFlag;
+    public bool ShowBanner => IsLastLapNow || ShowFinishFlag || _raceComplete;
 
     public string StatusMessage
     {
@@ -179,6 +187,52 @@ public sealed class MainViewModel : INotifyPropertyChanged
         private set => SetField(ref _xmlFilePath, value);
     }
 
+    /// <summary>True once the race clock has expired and the banner switches to "RACE COMPLETE".</summary>
+    public bool RaceComplete
+    {
+        get => _raceComplete;
+        private set
+        {
+            if (SetField(ref _raceComplete, value))
+            {
+                OnPropertyChanged(nameof(ShowBanner));
+            }
+        }
+    }
+
+    /// <summary>Number of teams that have crossed the finish line since the race expired.</summary>
+    public int FinishedCount
+    {
+        get => _finishedCount;
+        private set
+        {
+            if (SetField(ref _finishedCount, value))
+                OnPropertyChanged(nameof(FinishCounterDisplay));
+        }
+    }
+
+    /// <summary>Number of teams still on-track (have not yet crossed since race expired).</summary>
+    public int StillRacingCount
+    {
+        get => _stillRacingCount;
+        private set
+        {
+            if (SetField(ref _stillRacingCount, value))
+                OnPropertyChanged(nameof(FinishCounterDisplay));
+        }
+    }
+
+    /// <summary>Total number of teams in the field (from XML result count).</summary>
+    public int TotalCompetitors
+    {
+        get => _totalCompetitors;
+        private set => SetField(ref _totalCompetitors, value);
+    }
+
+    /// <summary>One-line summary shown inside the Race Complete banner.</summary>
+    public string FinishCounterDisplay =>
+        $"Finished: {_finishedCount}  |  Still Racing: {_stillRacingCount}";
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void TimerOnTick(object? sender, EventArgs e)
@@ -209,6 +263,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void UpdateFromRaceState(RaceState state, PredictionResult prediction)
     {
+        // Check race expiry first – this gates the banner and finish counter
+        UpdateRaceCompleteState(state);
+
         RaceElapsedDisplay = FormatTime(state.Elapsed);
         RaceRemainingDisplay = FormatTime(state.Remaining);
 
@@ -407,6 +464,14 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void UpdateBannerState(PredictionResult prediction, int currentLapCount)
     {
+        // Race-complete overrides all other banner states
+        if (_raceComplete)
+        {
+            IsLastLapNow = false;
+            BannerMessage = "RACE COMPLETE";
+            return;
+        }
+
         // If finish flag banner is already showing, keep it
         if (_showFinishFlag)
         {
@@ -449,6 +514,43 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 BannerMessage = "";
             }
         }
+    }
+
+    /// <summary>
+    /// Called every tick. When the race clock first reaches zero, snapshots each competitor's
+    /// lap count. On subsequent ticks, any competitor whose laps increased is counted as
+    /// having crossed the finish line.
+    /// </summary>
+    private void UpdateRaceCompleteState(RaceState state)
+    {
+        // Only activate once the race clock has expired and we have field data
+        if (state.Remaining > TimeSpan.Zero || state.AllCompetitors.Count == 0)
+            return;
+
+        // Take a one-time snapshot the first time we see remaining <= 0
+        if (!_raceExpired)
+        {
+            _raceExpired = true;
+            _lapsAtRaceExpiry = state.AllCompetitors
+                .GroupBy(c => c.Id)
+                .ToDictionary(g => g.Key, g => g.First().Laps);
+        }
+
+        // Count finishers (lap count increased since snapshot) vs still racing
+        int finished = 0, stillRacing = 0;
+        foreach (var competitor in state.AllCompetitors)
+        {
+            var snapshotLaps = _lapsAtRaceExpiry.GetValueOrDefault(competitor.Id, competitor.Laps);
+            if (competitor.Laps > snapshotLaps)
+                finished++;
+            else
+                stillRacing++;
+        }
+
+        FinishedCount = finished;
+        StillRacingCount = stillRacing;
+        TotalCompetitors = state.AllCompetitors.Count;
+        RaceComplete = true;
     }
 }
 
