@@ -11,7 +11,7 @@
 - **Finish-line counter**: displayed beneath the Race Complete banner — shows how many teams have crossed the line since the clock expired ("Finished: X | Still Racing: Y"). The counter is updated on every data read by comparing each competitor's current lap count against a snapshot taken at the moment the clock hit zero.
 
 ### Fixed (post-release)
-- Finish counter was incorrectly counting teams as "finished" the moment the race clock hit zero. It now uses a two-phase approach: Phase 1 waits for the **leader** to cross the line after expiry (their lap count increases in the XML). Phase 2 snapshots all other competitors' lap counts at that exact moment and counts subsequent crossings. Teams are only marked finished when their lap count increases *after* the leader's post-expiry crossing.
+- Finish counter was incorrectly counting teams as "finished" the moment the race clock hit zero. Corrected to a two-phase approach: when the clock reaches zero the existing banner continues showing (e.g. "PREPARE TO WAVE FINISH FLAG") while the app waits for the **tracked leader** to physically cross the line. Only once the leader's lap count increases in the XML (their post-expiry crossing) does the banner switch to "RACE COMPLETE" and the finish counter begin. Other teams are marked finished as their own lap counts subsequently increase.
 
 ---
 

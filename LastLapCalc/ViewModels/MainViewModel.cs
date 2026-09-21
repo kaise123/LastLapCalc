@@ -522,14 +522,14 @@ public sealed class MainViewModel : INotifyPropertyChanged
     /// <summary>
     /// Two-phase finish-line counter:
     ///
-    /// Phase 1 – clock hits zero:
-    ///   Show "RACE COMPLETE" banner. Record the leader's ID and current lap count.
-    ///   The counter shows 0 finished / N total while we wait for the leader to cross.
+    /// Phase 1 – clock hits zero, leader has NOT yet crossed:
+    ///   Record leader's ID and lap count. Continue showing whatever banner was already
+    ///   showing (e.g. "PREPARE TO WAVE FINISH FLAG"). Do NOT show "RACE COMPLETE" yet.
     ///
-    /// Phase 2 – leader crosses the line after expiry (lap count increases):
-    ///   Snapshot every OTHER competitor's current lap count. Leader = finished (1).
-    ///   On each subsequent read, competitors whose laps exceed their snapshot are counted
-    ///   as finished; those that haven't crossed yet are still racing.
+    /// Phase 2 – leader's lap count increases while remaining ≤ 0:
+    ///   The race is now officially complete. Show "RACE COMPLETE" banner.
+    ///   Snapshot every other competitor's current lap count. Leader = finished (1).
+    ///   Subsequent crossings by other teams increment the finished count.
     /// </summary>
     private void UpdateRaceCompleteState(RaceState state)
     {
@@ -537,10 +537,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (state.Remaining > TimeSpan.Zero || state.AllCompetitors.Count == 0)
             return;
 
-        TotalCompetitors = state.AllCompetitors.Count;
-        RaceComplete = true;
-
         // ── Phase 1: record leader identity the first time remaining ≤ 0 ──────────
+        // Do NOT set RaceComplete here. The existing banner keeps showing while we
+        // wait for the leader to physically cross the line.
         if (!_raceExpired)
         {
             _raceExpired = true;
@@ -563,20 +562,23 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
             if (!leaderCrossed)
             {
-                // Leader hasn't come through yet – show counter as 0 / total, keep waiting.
-                FinishedCount = 0;
-                StillRacingCount = state.AllCompetitors.Count;
+                // Leader hasn't come through yet. Stay in current banner state; don't
+                // show "RACE COMPLETE" or the counter until the leader actually crosses.
                 return;
             }
 
-            // Leader has crossed. Snapshot every competitor's lap count RIGHT NOW.
-            // The leader is immediately marked finished (their new count is the snapshot baseline
-            // for everyone else, but we track the leader separately).
+            // Leader has crossed – the race is now officially complete.
             _leaderHasFinished = true;
+            RaceComplete = true;
+            TotalCompetitors = state.AllCompetitors.Count;
+
+            // Snapshot every competitor's current lap count. Anyone whose count
+            // increases after this moment has crossed the finish line.
             _lapsAtLeaderFinish = state.AllCompetitors
                 .GroupBy(c => c.Id)
                 .ToDictionary(g => g.Key, g => g.First().Laps);
         }
+
 
         // ── Phase 2: count finishers relative to the leader-crossed snapshot ─────
         // Leader is always counted as finished. All others finish when their laps
