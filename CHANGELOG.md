@@ -4,6 +4,7 @@
 
 ### Fixed
 - Finish counter was incorrectly triggering "RACE COMPLETE" and beginning to count finishers the moment the race clock hit zero. Corrected: the banner continues showing "PREPARE TO WAVE FINISH FLAG" until the tracked leader physically crosses the line after expiry. Only once the leader's lap count increases in the XML does the banner switch to "RACE COMPLETE" and the counter begin.
+- Portable single-file execution: resolved path resolution using `Environment.ProcessPath`, added fallback auto-creation of `appsettings.json`, and configured post-publish sync to output directory so the portable executable works when copied anywhere without external dependencies.
 
 ---
 

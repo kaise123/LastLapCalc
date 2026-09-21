@@ -28,4 +28,10 @@
     </None>
   </ItemGroup>
 
+  <!-- Ensure that after publish, the single-file bundle is also copied to $(OutputPath) -->
+  <!-- so copying LastLapCalc.exe directly from bin\Release gives the portable bundle.   -->
+  <Target Name="CopyPublishExeToOutputPath" AfterTargets="Publish">
+    <Copy SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" />
+  </Target>
+
 </Project>
