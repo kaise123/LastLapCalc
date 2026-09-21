@@ -255,7 +255,7 @@
                        Foreground="LightGray"
                        TextAlignment="Left"
                        Margin="0,2,0,0" />
-            <TextBlock Text="Version: 1.1 20.09.26"
+            <TextBlock Text="Version: 1.1.1 21.09.26"
                        FontSize="8"
                        Foreground="LightGray"
                        TextAlignment="Left"

@@ -1,5 +1,12 @@
 # Last Lap Timer - Changelog
 
+## Version 1.1.1 - 21.09.26
+
+### Fixed
+- Finish counter was incorrectly triggering "RACE COMPLETE" and beginning to count finishers the moment the race clock hit zero. Corrected: the banner continues showing "PREPARE TO WAVE FINISH FLAG" until the tracked leader physically crosses the line after expiry. Only once the leader's lap count increases in the XML does the banner switch to "RACE COMPLETE" and the counter begin.
+
+---
+
 ## Version 1.1 - 20.09.26
 
 ### Fixed
@@ -7,11 +14,8 @@
 
 ### Added
 - Trike description text field in the Leader panel. Operators can type a free-text description (e.g. make, model, colour) of the leading trike during the race.
-- **Race Complete state**: when the race clock expires (remaining ≤ 0), the banner switches to a green **"RACE COMPLETE"** display, overriding the last-lap / finish-flag banners.
-- **Finish-line counter**: displayed beneath the Race Complete banner — shows how many teams have crossed the line since the clock expired ("Finished: X | Still Racing: Y"). The counter is updated on every data read by comparing each competitor's current lap count against a snapshot taken at the moment the clock hit zero.
-
-### Fixed (post-release)
-- Finish counter was incorrectly counting teams as "finished" the moment the race clock hit zero. Corrected to a two-phase approach: when the clock reaches zero the existing banner continues showing (e.g. "PREPARE TO WAVE FINISH FLAG") while the app waits for the **tracked leader** to physically cross the line. Only once the leader's lap count increases in the XML (their post-expiry crossing) does the banner switch to "RACE COMPLETE" and the finish counter begin. Other teams are marked finished as their own lap counts subsequently increase.
+- **Race Complete state**: when the leader crosses the finish line after the race clock expires, the banner switches to a green **"RACE COMPLETE"** display.
+- **Finish-line counter**: displayed beneath the Race Complete banner — shows how many teams have crossed since the leader finished ("Finished: X | Still Racing: Y"), updated live on every XML read.
 
 ---
 
