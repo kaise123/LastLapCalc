@@ -41,8 +41,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private PredictionResult? _lastPrediction;
 
     // --- Race-complete / finish-line counter state ---
-    private bool _raceExpired = false;
-    private Dictionary<string, int> _lapsAtRaceExpiry = new();
+    private bool _raceExpired = false;          // clock has hit zero
+    private string _leaderIdAtExpiry = "";      // leader's competitor number at expiry
+    private int _leaderLapsAtExpiry = 0;        // leader's lap count the moment clock expired
+    private bool _leaderHasFinished = false;    // leader crossed the line after expiry
+    private Dictionary<string, int> _lapsAtLeaderFinish = new(); // snapshot of all others when leader crossed
     private bool _raceComplete = false;
     private int _finishedCount = 0;
     private int _stillRacingCount = 0;
@@ -517,30 +520,75 @@ public sealed class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Called every tick. When the race clock first reaches zero, snapshots each competitor's
-    /// lap count. On subsequent ticks, any competitor whose laps increased is counted as
-    /// having crossed the finish line.
+    /// Two-phase finish-line counter:
+    ///
+    /// Phase 1 – clock hits zero:
+    ///   Show "RACE COMPLETE" banner. Record the leader's ID and current lap count.
+    ///   The counter shows 0 finished / N total while we wait for the leader to cross.
+    ///
+    /// Phase 2 – leader crosses the line after expiry (lap count increases):
+    ///   Snapshot every OTHER competitor's current lap count. Leader = finished (1).
+    ///   On each subsequent read, competitors whose laps exceed their snapshot are counted
+    ///   as finished; those that haven't crossed yet are still racing.
     /// </summary>
     private void UpdateRaceCompleteState(RaceState state)
     {
-        // Only activate once the race clock has expired and we have field data
+        // Only activate once the race clock has expired and we have field data.
         if (state.Remaining > TimeSpan.Zero || state.AllCompetitors.Count == 0)
             return;
 
-        // Take a one-time snapshot the first time we see remaining <= 0
+        TotalCompetitors = state.AllCompetitors.Count;
+        RaceComplete = true;
+
+        // ── Phase 1: record leader identity the first time remaining ≤ 0 ──────────
         if (!_raceExpired)
         {
             _raceExpired = true;
-            _lapsAtRaceExpiry = state.AllCompetitors
+            _leaderIdAtExpiry = state.Leader.Id;
+
+            // Prefer the lap count from AllCompetitors (same source as the counter).
+            // Fall back to the leader's tracked total if not found there.
+            var leaderEntry = state.AllCompetitors.FirstOrDefault(c => c.Id == _leaderIdAtExpiry);
+            _leaderLapsAtExpiry = leaderEntry.Id == _leaderIdAtExpiry
+                ? leaderEntry.Laps
+                : state.Leader.TotalLapsCompleted;
+        }
+
+        // ── Wait for leader's post-expiry crossing ────────────────────────────────
+        if (!_leaderHasFinished)
+        {
+            var leaderNow = state.AllCompetitors.FirstOrDefault(c => c.Id == _leaderIdAtExpiry);
+            bool leaderCrossed = leaderNow.Id == _leaderIdAtExpiry
+                                 && leaderNow.Laps > _leaderLapsAtExpiry;
+
+            if (!leaderCrossed)
+            {
+                // Leader hasn't come through yet – show counter as 0 / total, keep waiting.
+                FinishedCount = 0;
+                StillRacingCount = state.AllCompetitors.Count;
+                return;
+            }
+
+            // Leader has crossed. Snapshot every competitor's lap count RIGHT NOW.
+            // The leader is immediately marked finished (their new count is the snapshot baseline
+            // for everyone else, but we track the leader separately).
+            _leaderHasFinished = true;
+            _lapsAtLeaderFinish = state.AllCompetitors
                 .GroupBy(c => c.Id)
                 .ToDictionary(g => g.Key, g => g.First().Laps);
         }
 
-        // Count finishers (lap count increased since snapshot) vs still racing
-        int finished = 0, stillRacing = 0;
+        // ── Phase 2: count finishers relative to the leader-crossed snapshot ─────
+        // Leader is always counted as finished. All others finish when their laps
+        // exceed the count they had at the moment the leader crossed.
+        int finished = 1; // leader
+        int stillRacing = 0;
         foreach (var competitor in state.AllCompetitors)
         {
-            var snapshotLaps = _lapsAtRaceExpiry.GetValueOrDefault(competitor.Id, competitor.Laps);
+            if (competitor.Id == _leaderIdAtExpiry)
+                continue; // leader already counted above
+
+            var snapshotLaps = _lapsAtLeaderFinish.GetValueOrDefault(competitor.Id, competitor.Laps);
             if (competitor.Laps > snapshotLaps)
                 finished++;
             else
@@ -549,8 +597,6 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         FinishedCount = finished;
         StillRacingCount = stillRacing;
-        TotalCompetitors = state.AllCompetitors.Count;
-        RaceComplete = true;
     }
 }
 
