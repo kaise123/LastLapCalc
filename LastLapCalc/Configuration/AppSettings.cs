@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace LastLapCalc.Configuration;
 
@@ -16,20 +17,37 @@ public static class AppSettingsLoader
 {
     private const string FileName = "appsettings.json";
 
+    /// <summary>
+    /// Returns the directory containing the running executable.
+    /// Handles single-file publish correctly: AppDomain.CurrentDomain.BaseDirectory
+    /// points to the .NET extraction temp folder, while Environment.ProcessPath
+    /// always points to where the user actually placed the exe.
+    /// </summary>
+    private static string ExeDirectory =>
+        Path.GetDirectoryName(Environment.ProcessPath)
+        ?? AppDomain.CurrentDomain.BaseDirectory;
+
     public static AppSettings Load()
     {
         try
         {
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var path = Path.Combine(baseDir, FileName);
+            var path = Path.Combine(ExeDirectory, FileName);
 
             if (!File.Exists(path))
             {
-                return new AppSettings();
+                // Write a default file so the user has a template to edit.
+                var defaults = new AppSettings();
+                var json = JsonSerializer.Serialize(defaults, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.Never
+                });
+                File.WriteAllText(path, json);
+                return defaults;
             }
 
-            var json = File.ReadAllText(path);
-            var settings = JsonSerializer.Deserialize<AppSettings>(json);
+            var raw = File.ReadAllText(path);
+            var settings = JsonSerializer.Deserialize<AppSettings>(raw);
             return settings ?? new AppSettings();
         }
         catch
